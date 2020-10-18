@@ -15,6 +15,7 @@
 		// 将 Data json array 转为 Html
 		dataToHtml: function(data){
 			let t = {sel: window.getSelection().toString() || ''};
+			cabbage.i.selText = t.sel;
 			t.html = data.reduce((tax,cur,idx)=>{
 				if(cur.break){return tax + "<li class='break'></li>";}
 
@@ -117,7 +118,8 @@
 		if(cabb.idx===undefined){return false;}
 
 		cabb.func = cabb.data[cabb.idx].func;
-		if(typeof cabb.func === 'function'){cabb.func.call(cabb.trigger[0]);}
+		cabb.opts = {selText: cabbage.i.selText};
+		if(typeof cabb.func === 'function'){cabb.func.call(cabb.trigger[0], cabb.opts);}
 	}, {flag:'Always'});
 
 	/*!
