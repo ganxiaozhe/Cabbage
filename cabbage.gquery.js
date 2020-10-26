@@ -101,19 +101,20 @@
 
 			$('.cabbageMenu').remove();
 			if(menu.data.length<1){return;}
-			
+
 			$('body').append(menu.html);
 			menu.pos = cabbage.posHandle($('#cabbageMenu')[0], e);
 			$('#cabbageMenu').css({top: menu.pos.top+'px', left: menu.pos.left+'px'});
+			$('body').css({'overflow-y':'hidden'});
 
 			$(document).off('click', {flag:'cabbageMenu'}).off('contextmenu', {flag:'cabbageMenu'}).on({
 				click: function(){
 					$('.cabbage-active').removeClass('cabbage-active');
-					$('.cabbageMenu').remove();cabbage.menus = [];
+					$('.cabbageMenu').remove();cabbage.menus = [];$('body').css({'overflow-y':''});
 				},
 				contextmenu: function(){
 					$('.cabbage-active').removeClass('cabbage-active');
-					$('.cabbageMenu').remove();cabbage.menus = [];
+					$('.cabbageMenu').remove();cabbage.menus = [];$('body').css({'overflow-y':''});
 				}
 			}, {flag:'cabbageMenu'});
 		});
