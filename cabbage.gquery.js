@@ -1,6 +1,6 @@
 // =================================================
 //
-// Cabbage.gQuery.js v0.1.0
+// Cabbage.gQuery.js v0.2.0
 // (c) 2020, JU Chengren (Ganxiaozhe)
 // Released under the MIT License.
 // gquery.net/plugins/cabbage
@@ -11,6 +11,7 @@
 	if(!$ || !gQuery){throw new Error('Cabbage.js need gQuery: https://gquery.net/');}
 
 	let cabbage = {
+		menus: [],
 		i: {},
 		// 将 Data json array 转为 Html
 		dataToHtml: function(data){
@@ -67,12 +68,18 @@
 			return cabb;
 		},
 		extraMenuClear: function(){
-			setTimeout(()=>{
-				if(cabbage.i.extra>0){return;}
-			
-				clearTimeout(cabbage.i.emDelay);
-				$('#cabbageMenu1').remove();
-			},50);
+			clearTimeout(cabbage.i.emDelay);clearTimeout(cabbage.i.emClear);
+
+			cabbage.i.emClear = setTimeout(()=>{	
+				let menus = cabbage.menus, i, $obj, len = cabbage.i.thisMI ? cabbage.i.thisMI : 0;
+
+				for (i = menus.length - 1; i >= len; i--) {
+					$obj = $('#'+menus[i].idText);
+					if($obj.length>0){
+						$obj.remove();
+					}
+				}
+			},200);
 		}
 	};
 
@@ -93,6 +100,8 @@
 			menu.html = "<div id='cabbageMenu' class='cabbageMenu'><ul>"+cabbage.dataToHtml(menu.data)+"</ul></div>";
 
 			$('.cabbageMenu').remove();
+			if(menu.data.length<1){return;}
+			
 			$('body').append(menu.html);
 			menu.pos = cabbage.posHandle($('#cabbageMenu')[0], e);
 			$('#cabbageMenu').css({top: menu.pos.top+'px', left: menu.pos.left+'px'});
@@ -100,11 +109,11 @@
 			$(document).off('click', {flag:'cabbageMenu'}).off('contextmenu', {flag:'cabbageMenu'}).on({
 				click: function(){
 					$('.cabbage-active').removeClass('cabbage-active');
-					$('.cabbageMenu').remove();
+					$('.cabbageMenu').remove();cabbage.menus = [];
 				},
 				contextmenu: function(){
 					$('.cabbage-active').removeClass('cabbage-active');
-					$('.cabbageMenu').remove();
+					$('.cabbageMenu').remove();cabbage.menus = [];
 				}
 			}, {flag:'cabbageMenu'});
 		});
@@ -127,35 +136,48 @@
 	 */
 	$(document).on({
 		mouseover: function(){
-			let $obj = $(this);
-			if(!$obj.hasClass('i')){return;}
-			if($('#cabbageMenu1').length>0){cabbage.i.extra++;return;}
-			cabbage.i.extra = 1;
+			if(!$(this).hasClass('i')){return;}
+
+			let mid = $(this).data('menuId'), em, _this = this;
+			if(mid===undefined){
+				mid = cabbage.menus.length+1;
+				em = {id: mid, idText: 'cabbageMenu'+mid, obj: $(this)};
+				cabbage.menus.push(em);
+				$(this).data('menuId', mid);
+			} else {
+				em = $.array.finder(cabbage.menus, {id: mid}).array;
+			}
+
+			if( $('#'+em.idText).length>0 ){
+				clearTimeout(cabbage.i.emClear);return;
+			}
 
 			cabbage.i.emDelay = setTimeout(()=>{
-				let menu = cabbage.liHandle($obj);
+				let menu = cabbage.liHandle(em.obj);
 				if(!menu.data){console.log('[Cabbage.js] empty menu data.');return;}
 				menu.extra = menu.data[menu.idx].data;
 
-				menu.html = "<div id='cabbageMenu1' class='cabbageMenu extra'><ul>"+
+				menu.html = "<div id='"+em.idText+"' class='cabbageMenu extra'><ul>"+
 					cabbage.dataToHtml(menu.extra)+
 				"</ul></div>";
-				menu.pos = $obj.offset(true);
+				menu.pos = em.obj.offset();
 				menu.pos.top -= 8;
-				menu.pos.left += $obj.width()+1;
+				menu.pos.left += em.obj.width()+1;
 
 				$('body').append(menu.html);
-				$('#cabbageMenu1').css({top: menu.pos.top+'px', left: menu.pos.left+'px'}).on({
-					mouseenter: function(){
-						cabbage.i.extra++;
-					},mouseleave: function(){
-						cabbage.i.extra--;cabbage.extraMenuClear();
+				$('#'+em.idText).css({top: menu.pos.top+'px', left: menu.pos.left+'px'}).on({
+					mouseover: function(){
+						cabbage.i.thisMI = parseInt( $(this).attr('id').replace('cabbageMenu','') );
+					},
+					mouseleave: function(){
+						cabbage.i.thisMI = 0;
+						cabbage.extraMenuClear();
 					}
 				}).data('cabbageMenu', menu.extra);
 			},500);
 		},
 		mouseleave: function(){
-			cabbage.i.extra--;cabbage.extraMenuClear();
+			cabbage.extraMenuClear();
 		}
 	}, '.cabbageMenu ul li.extra');
 })();
