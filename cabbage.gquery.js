@@ -1,6 +1,6 @@
 // =================================================
 //
-// Cabbage.gQuery.js v0.2.0
+// Cabbage.gQuery.js v0.2.1
 // (c) 2020, JU Chengren (Ganxiaozhe)
 // Released under the MIT License.
 // gquery.net/plugins/cabbage
@@ -105,17 +105,18 @@
 			$('body').append(menu.html);
 			menu.pos = cabbage.posHandle($('#cabbageMenu')[0], e);
 			$('#cabbageMenu').css({top: menu.pos.top+'px', left: menu.pos.left+'px'});
-			$('body').css({'overflow-y':'hidden'});
+			// 禁止右键后滚动页面
+			$('body').on('mousewheel', function(e){e.preventDefault();}, {passive: false, cabbageJs: true});
+
+			function reCabbage(){
+				$('.cabbage-active').removeClass('cabbage-active');
+				$('.cabbageMenu').remove();cabbage.menus = [];
+				$('body').off('mousewheel', {passive: false, cabbageJs: true});
+			}
 
 			$(document).off('click', {flag:'cabbageMenu'}).off('contextmenu', {flag:'cabbageMenu'}).on({
-				click: function(){
-					$('.cabbage-active').removeClass('cabbage-active');
-					$('.cabbageMenu').remove();cabbage.menus = [];$('body').css({'overflow-y':''});
-				},
-				contextmenu: function(){
-					$('.cabbage-active').removeClass('cabbage-active');
-					$('.cabbageMenu').remove();cabbage.menus = [];$('body').css({'overflow-y':''});
-				}
+				click: reCabbage,
+				contextmenu: reCabbage
 			}, {flag:'cabbageMenu'});
 		});
 	}});
